@@ -10,5 +10,5 @@
 //Admin? (boolean)
 
 //SELECT * FROM users
-//SELECT * FROM users WHERE admin == true
-//SELECT * FROM users WHERE email == "bob@email.com"
+//SELECT * FROM users WHERE admin = true;
+//SELECT * FROM users WHERE email = 'bob@email.com';
