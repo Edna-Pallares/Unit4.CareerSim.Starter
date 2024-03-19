@@ -1,21 +1,14 @@
-//User
-//Email PK (Pass Key) not null
-//Password (string varchar) not null
-//First Name (string varchar)
-//Last Name (string varchar)
-//Address (string varchar) not null
-//Payment Info (string varchar)
-//Phone Number (string varchar)
-//Logged In (boolean)
-//Admin? (boolean)
+//fetchUserInfo
+//login
+//logout
+//createProduct //admins only
+//updateProduct //admins only
+//deleteProduct //admins only
+//addToCart
+//removeFromCart
+//checkout (deletes cart and adds to order history) //maintaining order history is optional!
 
-//SELECT * FROM users
-//SELECT * FROM users WHERE admin = true;
-//SELECT * FROM users WHERE email = 'bob@email.com';
-
-const pg = require('pg')
 const express = require('express')
-const client = new pg.Client(process.env.DATABASE_URL || 'postgres://localhost/the_acme_notes_db')
 const app = express() 
 
 //app routes
