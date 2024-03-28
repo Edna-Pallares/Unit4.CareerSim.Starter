@@ -5,14 +5,47 @@ const uuid = require('uuid'); //generate unique code
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const JWT = process.env.JWT || 'shhh';
-const express = require('express')
-const app = express() 
 
+//createTable
+const createTables = async()=> {
+  const SQL = `
+    DROP TABLE IF EXISTS carted_products;
+    DROP TABLE IF EXISTS users;
+    DROP TABLE IF EXISTS products;
+    CREATE TABLE users(
+      id UUID DEFAULT gen_random_uuid(),
+      username VARCHAR(20) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      address VARCHAR(255),
+      payment_info VARCHAR(16),
+      is_admin BOOLEAN,
+      PRIMARY KEY (id)
+    );
+    CREATE TABLE products(
+      id UUID DEFAULT gen_random_uuid(),
+      name VARCHAR(30) UNIQUE NOT NULL,
+      inventory NUMERIC(7,5),
+      price NUMERIC(7,5),
+      currency TEXT,
+      PRIMARY KEY (id)
+    );
+    CREATE TABLE carted_products(
+      id UUID DEFAULT gen_random_uuid(),
+      product_id UUID REFERENCES products(id) NOT NULL,
+      user_id UUID REFERENCES users(id) NOT NULL,
+      amount NUMERIC DEFAULT,
+      CONSTRAINT unique_user_id_and_product_id UNIQUE (product_id, user_id)
+      CONSTRAINT amount_less_than_inventory CHECK (amount <= products(inventory)),
+      PRIMARY KEY (id)
+    );
+  `;
+  await client.query(SQL);
+
+};
 //CRUD
 
-
 //createUser
-const createUser = async() =>{
+const createUser = async({username, password, address, payment_info, }) =>{
 
 };
 //createCart
@@ -40,90 +73,50 @@ const selectCartedProduct = async() =>{
     
 };
 //updateCartedProduct
-const updateCartedProducts = async( =>){
+const updateCartedProducts = async() =>{
 
 };
 //updateUser
-const updateUser = async( =>){
+const updateUser = async() =>{
     
 };
 //updateProduct
-const updateProducts = async( =>){
+const updateProducts = async() =>{
     
 };
 //deleteUser
-const deleteUser = async( =>){
+const deleteUser = async() =>{
     
 };
 //deleteProduct
-const deleteProduct = async( =>){
+const deleteProduct = async() =>{
     
 };
 //deleteProductFromCart
-const deleteCartProduct = async( =>){
+const deleteCartProduct = async() =>{
     
 };
 //deleteCart
-const deleteCart = async( =>){
+const deleteCart = async() =>{
     
 };
 
-//Table Design
-/* ---Product---
-id (UUID generated)
-name
-price
-num_inventory
-
-
----User---
-id (UUID generated)
-name
-address
-credit_card_num
-isAdmin BOOLEAN
-
----Carted_Products---
-id (UUID generated)
-user_id (foreign key)
-product_id (foreign key)
-amount
-constraint one_product UNIQUE (user_id, product_id)
-constraint valid_amount CHECK (amount <= product_inventory)
-
-*/
-const createTables = async()=> {
-    const SQL = `
-      DROP TABLE IF EXISTS carted_products;
-      DROP TABLE IF EXISTS users;
-      DROP TABLE IF EXISTS products;
-      CREATE TABLE users(
-        id UUID PRIMARY KEY,
-        username VARCHAR(20) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL
-        address VARCHAR(255)
-        payment_info VARCHAR (16)
-        is_admin BOOLEAN,
-        PRIMARY KEY (id)
-      );
-      CREATE TABLE products(
-        id UUID DEFAULT gen_random_uuid(),
-        name VARCHAR(100) UNIQUE NOT UNIQUE
-        inventory NUMERIC(7,5),
-        price NUMERIC(7,5),
-        currency TEXT,
-        PRIMARY KEY (id)
-      );
-      CREATE TABLE carted_products(
-        id UUID DEFAULT gen_random_uuid(),
-        product_id UUID REFERENCES products(id) NOT NULL,
-        user_id UUID REFERENCES users(id) NOT NULL,
-        amount NUMERIC DEFAULT,
-        CONSTRAINT unique_user_id_and_product_id UNIQUE (products_id, user_id)
-        CONSTRAINT amount_less_than_inventory CHECK (amount <= product(inventory)),
-        PRIMARY KEY (id)
-      );
-    `;
-    await client.query(SQL);
-  
-  };
+//exports
+module.exports = {
+  client,
+  createTables,
+  createUser,
+  createCart,
+  createProduct,
+  createOrder,
+  selectUser,
+  selectProduct,
+  selectCartedProduct,
+  updateCartedProducts,
+  updateUser,
+  updateProducts,
+  deleteUser,
+  deleteProduct,
+  deleteCartProduct,
+  deleteCart
+}

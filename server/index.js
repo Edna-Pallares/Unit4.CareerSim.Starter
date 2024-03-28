@@ -1,3 +1,5 @@
+const { createTables } = require('../../../block36/Acme-auth-store/server/db');
+const {client} = require('./db');
 //fetchUserInfo
 //login
 //logout
@@ -32,4 +34,8 @@ app.delete('/api/notes/:id', async (req, res, next) => {});
 const init = async () => {
     await client.connect ();
     console.log('connected to database')
+    
+    await createTables();
+    console.log('tables created');
+    
 }
