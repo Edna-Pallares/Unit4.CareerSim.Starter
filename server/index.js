@@ -1,5 +1,27 @@
+//imports
 const { createTables } = require('../../../block36/Acme-auth-store/server/db');
-const {client} = require('./db');
+const {  client,
+    createTables,
+    createUser,
+    createProduct,
+    createCartedProducts,
+    createCart,
+    selectUser,
+    selectProducts,
+    selectCartedProducts,
+    selectCart,
+    updateUser,
+    updateProducts,
+    updateCartedProducts,
+    updateCart,
+    deleteUser,
+    deleteProduct,
+    deleteCartedProduct,
+    deleteCart,
+    deleteCartItem,
+    authenticate,
+    findUserWithToken
+} = require('./db');
 //fetchUserInfo
 //login
 //logout
