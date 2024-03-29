@@ -36,14 +36,11 @@ const createTables = async () => {
       PRIMARY KEY (id)
     );
     CREATE TABLE carted_products(
-      id UUID DEFAULT gen_random_uuid(),
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
       user_id UUID REFERENCES users(id) NOT NULL,
       product_id UUID REFERENCES products(id) NOT NULL,
       amount INT,
       CONSTRAINT unique_user_id_and_product_id UNIQUE (product_id, user_id)
-      CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-      PRIMARY KEY (id)
     );
   `;
   await client.query(SQL);
@@ -339,5 +336,5 @@ module.exports = {
   deleteCartedProduct,
   deleteCart,
   authenticate,
-  findUserWithToken,
+  findUserWithToken
 };
