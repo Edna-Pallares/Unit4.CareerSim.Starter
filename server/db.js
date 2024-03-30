@@ -29,9 +29,9 @@ const createTables = async () => {
       id UUID DEFAULT gen_random_uuid(),
       name VARCHAR(30) NOT NULL,
       description TEXT,
-      inventory INT,
+      department TEXT,
       price NUMERIC(10,2),
-      currency VARCHAR(10),
+      status TEXT,
       imageUrl VARCHAR(255),
       PRIMARY KEY (id)
     );
@@ -56,7 +56,7 @@ const createUser = async ({
   payment_info,
 }) => {
   const SQL = `
-  INSERT INTO users(id, first_name, last_name, email, password, address, payment_info) VALUES($1, $2, $3, $4, $5, $6) RETURNING *
+  INSERT INTO users(id, first_name, last_name, email, password, address, payment_info) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *
   `;
   const response = await client.query(SQL, [
     uuid.v4(),
@@ -74,21 +74,21 @@ const createUser = async ({
 const createProduct = async ({
   name,
   description,
-  inventory,
+  department,
   price,
-  currency,
+  status,
   imageUrl,
 }) => {
   const SQL = `
-    INSERT INTO products(id, name, description, inventory, price, currency, imageUrl) VALUES($1, $2, $3, $4, $5) RETURNING *
+    INSERT INTO products(id, name, description, department, price, status, imageUrl) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *
   `;
   const response = await client.query(SQL, [
     uuid.v4(),
     name,
     description,
-    inventory,
+    department,
     price,
-    currency,
+    status,
     imageUrl,
   ]);
   return response.rows[0];
@@ -147,7 +147,7 @@ const selectCartedProducts = async () => {
 // readCart
 const selectCart = async (user_id) => {
   const SQL = `
-    SELECT cp.id, p.name, p.description, p.price, p.currency, cp.amount
+    SELECT cp.id, p.name, p.description, p.price, cp.amount
     FROM carted_products cp
     JOIN products p ON cp.product_id = p.id
     WHERE cp.user_id = $1;
@@ -189,14 +189,14 @@ const updateProducts = async ({
   id,
   name,
   description,
-  inventory,
+  department,
   price,
-  currency,
+  status,
   imageUrl,
 }) => {
   const SQL = `
   UPDATE products 
-  SET name = $2, description = $3, inventory = $4, price = $5, currency = $6, imageUrl = $7
+  SET name = $2, description = $3, department = $4, price = $5, status = $6, imageUrl = $7
   WHERE id = $1
   RETURNING *;
 `;
@@ -204,9 +204,9 @@ const updateProducts = async ({
     id,
     name,
     description,
-    inventory,
+    department,
     price,
-    currency,
+    status,
     imageUrl,
   ]);
   return response.rows[0];
@@ -298,7 +298,7 @@ const findUserWithToken = async (token) => {
   try {
     const payload = await jwt.verify(token, JWT);
     id = payload.id;
-  } catch (ex) {
+  } catch (err) {
     const error = Error("not authorized");
     error.status = 401;
     throw error;

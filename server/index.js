@@ -24,13 +24,16 @@ const {
 
 const express = require("express");
 const app = express();
+const cors = require("cors");
 
-//App routes
+//Middleware
 app.use(express.json());
 app.use(require("morgan")("dev"));
+app.use(cors());
 
 //For deployment only
 const path = require("path");
+const { fakeInfo } = require("./info");
 app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "../client/dist/index.html"))
 );
@@ -44,8 +47,8 @@ const isLoggedIn = async (req, res, next) => {
   try {
     req.user = await findUserWithToken(req.headers.authorization);
     next();
-  } catch (ex) {
-    next(ex);
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -62,8 +65,8 @@ app.post("/api/auth/register", async (req, res, next) => {
 app.post("/api/auth/login", async (req, res, next) => {
   try {
     res.send(await authenticate(req.body));
-  } catch (ex) {
-    next(ex);
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -98,19 +101,6 @@ app.get("/api/products", async (req, res, next) => {
   }
 });
 
-/*app.post("/api/notes", async (req, res, next) => {});
-app.get("/api/notes", async (req, res, next) => {
-  try {
-    const SQL = `SELECT * from notes ORDER BY created_at DESC;`;
-    const response = await client.query(SQL);
-    res.send(response.rows);
-  } catch (error) {
-    next(error);
-  }
-});
-app.put("/api/notes/:id", async (req, res, next) => {});
-app.delete("/api/notes/:id", async (req, res, next) => {});*/
-
 const init = async () => {
   const PORT = process.env.PORT || 3000;
   await client.connect();
@@ -118,6 +108,8 @@ const init = async () => {
 
   await createTables();
   console.log("tables created");
+
+  await fakeInfo();
 
   app.listen(PORT, () => console.log(`listening on port ${PORT}`));
 };
