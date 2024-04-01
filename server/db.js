@@ -250,8 +250,8 @@ const deleteProduct = async (id) => {
   const SQL = `
       DELETE FROM products WHERE id = $1 RETURNING *;
     `;
-    const response = await client.query(SQL, [id]);
-    return response.rows[0];
+  const response = await client.query(SQL, [id]);
+  return response.rows[0];
 };
 
 //deleteCartedProduct
@@ -336,5 +336,5 @@ module.exports = {
   deleteCartedProduct,
   deleteCart,
   authenticate,
-  findUserWithToken
+  findUserWithToken,
 };
