@@ -108,15 +108,6 @@ const createCartedProducts = async ({ user_id, product_id, quantity }) => {
   return response.rows[0];
 };
 
-// createCart
-const createCart = async (user_id) => {
-  const SQL = `
-    INSERT INTO carted_products (user_id, product_id, quantity)
-    SELECT $1, id, 0 FROM products;
-  `;
-  await client.query(SQL, [user_id]);
-};
-
 //readUser
 const fetchUser = async () => {
   const SQL = `
@@ -263,14 +254,6 @@ const deleteCartedProduct = async (id) => {
   return response.rows[0];
 };
 
-//deleteCart
-const deleteCart = async (user_id) => {
-  const SQL = `
-  DELETE FROM carted_products WHERE user_id = $1;
-  `;
-  await client.query(SQL, [user_id]);
-};
-
 //authenticate
 const authenticate = async ({ email, password }) => {
   const SQL = `
@@ -322,7 +305,6 @@ module.exports = {
   createUser,
   createProduct,
   createCartedProducts,
-  createCart,
   fetchUser,
   fetchProducts,
   fetchCartedProducts,
@@ -333,7 +315,6 @@ module.exports = {
   deleteUser,
   deleteProduct,
   deleteCartedProduct,
-  deleteCart,
   authenticate,
   findUserWithToken,
 };

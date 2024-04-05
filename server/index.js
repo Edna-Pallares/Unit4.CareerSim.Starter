@@ -5,7 +5,6 @@ const {
   createUser,
   createProduct,
   createCartedProducts,
-  createCart,
   fetchUser,
   fetchProducts,
   fetchCartedProducts,
@@ -16,7 +15,6 @@ const {
   deleteUser,
   deleteProduct,
   deleteCartedProduct,
-  deleteCart,
   authenticate,
   findUserWithToken,
 } = require("./db");
