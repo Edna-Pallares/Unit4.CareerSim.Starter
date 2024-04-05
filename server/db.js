@@ -1,7 +1,7 @@
 //imports
 const pg = require("pg");
 const client = new pg.Client(
-  process.env.DATABASE_URL || "postgres://localhost/the_acme_notes_db"
+  process.env.DATABASE_URL || "postgres://localhost/e_commerce_db"
 );
 const uuid = require("uuid"); //generates unique code
 const bcrypt = require("bcrypt");
@@ -18,7 +18,7 @@ const createTables = async () => {
       id UUID DEFAULT gen_random_uuid(),
       first_name VARCHAR(20) NOT NULL,
       last_name VARCHAR(20) NOT NULL,
-      email VARCHAR(25) UNIQUE NOT NULL,
+      email VARCHAR(30) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL,
       address VARCHAR(255),
       payment_info VARCHAR(255),
@@ -27,9 +27,9 @@ const createTables = async () => {
     );
     CREATE TABLE products(
       id UUID DEFAULT gen_random_uuid(),
-      name VARCHAR(30) NOT NULL,
+      name VARCHAR(255) NOT NULL,
       description TEXT,
-      department TEXT,
+      category TEXT,
       price NUMERIC(10,2),
       status TEXT,
       imageUrl VARCHAR(255),
@@ -39,7 +39,7 @@ const createTables = async () => {
       id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
       user_id UUID REFERENCES users(id) NOT NULL,
       product_id UUID REFERENCES products(id) NOT NULL,
-      amount INT,
+      quantity INT,
       CONSTRAINT unique_user_id_and_product_id UNIQUE (product_id, user_id)
     );
   `;
@@ -52,11 +52,11 @@ const createUser = async ({
   last_name,
   email,
   password,
-  address,
-  payment_info,
+  //address,
+  //payment_info,
 }) => {
   const SQL = `
-  INSERT INTO users(id, first_name, last_name, email, password, address, payment_info) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *
+  INSERT INTO users(id, first_name, last_name, email, password) VALUES($1, $2, $3, $4, $5) RETURNING *
   `;
   const response = await client.query(SQL, [
     uuid.v4(),
@@ -64,8 +64,8 @@ const createUser = async ({
     last_name,
     email,
     await bcrypt.hash(password, 8),
-    address,
-    payment_info,
+    //address,
+    //payment_info,
   ]);
   return response.rows[0];
 };
@@ -74,19 +74,19 @@ const createUser = async ({
 const createProduct = async ({
   name,
   description,
-  department,
+  category,
   price,
   status,
   imageUrl,
 }) => {
   const SQL = `
-    INSERT INTO products(id, name, description, department, price, status, imageUrl) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *
+    INSERT INTO products(id, name, description, category, price, status, imageUrl) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *
   `;
   const response = await client.query(SQL, [
     uuid.v4(),
     name,
     description,
-    department,
+    category,
     price,
     status,
     imageUrl,
@@ -95,15 +95,15 @@ const createProduct = async ({
 };
 
 //createCartedProduct
-const createCartedProducts = async ({ user_id, product_id, amount }) => {
+const createCartedProducts = async ({ user_id, product_id, quantity }) => {
   const SQL = `
-  INSERT INTO carted_products(id, user_id, product_id, amount) VALUES ($1, $2, $3, $4) RETURNING *
+  INSERT INTO carted_products(id, user_id, product_id, quantity) VALUES ($1, $2, $3, $4) RETURNING *
   `;
   const response = await client.query(SQL, [
     uuid.v4(),
     user_id,
     product_id,
-    amount,
+    quantity,
   ]);
   return response.rows[0];
 };
@@ -111,14 +111,14 @@ const createCartedProducts = async ({ user_id, product_id, amount }) => {
 // createCart
 const createCart = async (user_id) => {
   const SQL = `
-    INSERT INTO carted_products (user_id, product_id, amount)
+    INSERT INTO carted_products (user_id, product_id, quantity)
     SELECT $1, id, 0 FROM products;
   `;
   await client.query(SQL, [user_id]);
 };
 
 //readUser
-const selectUser = async () => {
+const fetchUser = async () => {
   const SQL = `
     SELECT * FROM users;
   `;
@@ -127,7 +127,7 @@ const selectUser = async () => {
 };
 
 //readProducts --returns all products
-const selectProducts = async () => {
+const fetchProducts = async () => {
   const SQL = `
     SELECT * FROM products;
   `;
@@ -135,8 +135,18 @@ const selectProducts = async () => {
   return response.rows;
 };
 
+// readSingleProduct by ID
+const fetchProductByID = async (id) => {
+  const SQL = `
+    SELECT * FROM products
+    WHERE id=$1
+    `;
+  const response = await client.query(SQL, [id]);
+  return response.rows[0];
+};
+
 //readCartedProduct
-const selectCartedProducts = async () => {
+const fetchCartedProducts = async () => {
   const SQL = `
   SELECT * FROM carted_products;
   `;
@@ -145,9 +155,9 @@ const selectCartedProducts = async () => {
 };
 
 // readCart
-const selectCart = async (user_id) => {
+const fetchCart = async (user_id) => {
   const SQL = `
-    SELECT cp.id, p.name, p.description, p.price, cp.amount
+    SELECT cp.id, p.name, p.description, p.price, cp.quantity
     FROM carted_products cp
     JOIN products p ON cp.product_id = p.id
     WHERE cp.user_id = $1;
@@ -189,14 +199,14 @@ const updateProducts = async ({
   id,
   name,
   description,
-  department,
+  category,
   price,
   status,
   imageUrl,
 }) => {
   const SQL = `
   UPDATE products 
-  SET name = $2, description = $3, department = $4, price = $5, status = $6, imageUrl = $7
+  SET name = $2, description = $3, category = $4, price = $5, status = $6, imageUrl = $7
   WHERE id = $1
   RETURNING *;
 `;
@@ -204,7 +214,7 @@ const updateProducts = async ({
     id,
     name,
     description,
-    department,
+    category,
     price,
     status,
     imageUrl,
@@ -213,26 +223,14 @@ const updateProducts = async ({
 };
 
 //updateCartedProduct
-const updateCartedProducts = async ({ id, user_id, product_id, amount }) => {
+const updateCartedProducts = async ({ id, user_id, product_id, quantity }) => {
   const SQL = `
     UPDATE carted_products 
-    SET user_id = $2, product_id = $3, amount = $4
+    SET user_id = $2, product_id = $3, quantity = $4
     WHERE id = $1
     RETURNING *;
   `;
-  const response = await client.query(SQL, [id, user_id, product_id, amount]);
-  return response.rows[0];
-};
-
-// updateCart
-const updateCart = async ({ id, amount }) => {
-  const SQL = `
-    UPDATE carted_products
-    SET amount = $2
-    WHERE id = $1
-    RETURNING *;
-  `;
-  const response = await client.query(SQL, [id, amount]);
+  const response = await client.query(SQL, [id, user_id, product_id, quantity]);
   return response.rows[0];
 };
 
@@ -295,6 +293,7 @@ const authenticate = async ({ email, password }) => {
 //findUserWithToken
 const findUserWithToken = async (token) => {
   let id;
+  console.log(token)
   try {
     const payload = await jwt.verify(token, JWT);
     id = payload.id;
@@ -304,9 +303,10 @@ const findUserWithToken = async (token) => {
     throw error;
   }
   const SQL = `
-    SELECT id, username FROM users WHERE id=$1;
+    SELECT id, email FROM users WHERE id=$1;
   `;
   const response = await client.query(SQL, [id]);
+  console.log(response, id)
   if (!response.rows.length) {
     const error = Error("not authorized");
     error.status = 401;
@@ -323,14 +323,13 @@ module.exports = {
   createProduct,
   createCartedProducts,
   createCart,
-  selectUser,
-  selectProducts,
-  selectCartedProducts,
-  selectCart,
+  fetchUser,
+  fetchProducts,
+  fetchCartedProducts,
+  fetchCart,
   updateUser,
   updateProducts,
   updateCartedProducts,
-  updateCart,
   deleteUser,
   deleteProduct,
   deleteCartedProduct,
